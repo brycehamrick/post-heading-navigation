@@ -7,9 +7,19 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+define( 'POST_HEADING_NAVIGATION_VERSION', '0.0.1' );
 
 class PostHeadingNavigation {
     const SLUG = 'post-heading-navigation';
+
+    private static $instance = null;
+
+    public static function get_instance() {
+        if ( self::$instance === null ) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
 
     public function __construct() {
         add_action( 'init', [ $this, 'register_block' ] );
@@ -42,9 +52,13 @@ class PostHeadingNavigation {
     public function render_navigation_block( $attributes ) {
         global $post;
 
+        if ( ! $post instanceof WP_Post ) {
+            return ''; // Return early if $post is not available
+        }
+
         $max_heading_level = isset( $attributes['maxHeadingLevel'] ) ? $attributes['maxHeadingLevel'] : 2;
 
-        $content = apply_filters( 'the_content', $post->post_content );
+        $content = $post->post_content;
         preg_match_all( '/<h([2-' . $max_heading_level . '])[^>]*>(.*?)<\/h[2-' . $max_heading_level . ']>/i', $content, $matches, PREG_SET_ORDER );
 
         if ( empty( $matches ) ) {
@@ -67,7 +81,7 @@ class PostHeadingNavigation {
             self::SLUG . '-style',
             plugins_url( 'build/style.css', __FILE__ ),
             [],
-            filemtime( plugin_dir_path( __FILE__ ) . 'build/style.css' )
+            POST_HEADING_NAVIGATION_VERSION
         );
 
         // Enqueue editor styles
@@ -76,10 +90,10 @@ class PostHeadingNavigation {
                 self::SLUG . '-editor',
                 plugins_url( 'build/editor.css', __FILE__ ),
                 [ 'wp-edit-blocks' ],
-                filemtime( plugin_dir_path( __FILE__ ) . 'build/editor.css' )
+                POST_HEADING_NAVIGATION_VERSION
             );
         }
     }
 }
 
-new PostHeadingNavigation();
+PostHeadingNavigation::get_instance();
