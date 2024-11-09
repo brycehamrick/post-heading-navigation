@@ -16,13 +16,14 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: [
-                            [ '@wordpress/babel-preset-default', { runtime: 'classic' } ]
-                        ],
-                    },
-                },
-            },
-        ],
+                        plugins: [
+                            // Directly use the classic JSX transformation
+                            ['@babel/plugin-transform-react-jsx', { pragma: 'wp.element.createElement' }]
+                        ]
+                    }
+                }
+            }
+        ]
     },
     externals: {
         '@wordpress/blocks': [ 'wp', 'blocks' ],
