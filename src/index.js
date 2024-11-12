@@ -47,7 +47,7 @@ registerBlockType('custom/post-heading-navigation', {
     },
 });
 
-// Step 2: Add Custom Attributes and Inspector Controls to Core Heading Block
+// Step 2: Modify Core Heading Attributes
 const modifyCoreHeading = () => {
     const headingBlock = wp.blocks.getBlockType('core/heading');
 
@@ -74,17 +74,23 @@ const modifyCoreHeading = () => {
         wp.blocks.registerBlockType('core/heading', { ...headingBlock, ...customHeadingSettings });
 
         console.log("core/heading block modified successfully with custom attributes");
+
+        // Confirm attributes are registered
+        const updatedHeadingBlock = wp.blocks.getBlockType('core/heading');
+        console.log("Updated core/heading block attributes:", updatedHeadingBlock.attributes);
     } else {
         console.log("core/heading block not found");
     }
 };
 
-// Step 3: Add Inspector Controls
+// Step 3: Add Inspector Controls with Logging
 const addHeadingInspectorControls = createHigherOrderComponent((BlockEdit) => {
     return (props) => {
         if (props.name !== 'core/heading') {
             return <BlockEdit {...props} />;
         }
+
+        console.log("Rendering Inspector Controls for core/heading...");
 
         const { attributes, setAttributes } = props;
         const { navigationLabel, excludeFromNavigation } = attributes;
@@ -120,13 +126,13 @@ addFilter(
     addHeadingInspectorControls
 );
 
-// Initialize modifications after dependencies are available
+// Initialize after dependencies are available
 const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.blocks && wp.hooks && wp.data) {
         console.log("Dependencies available. Modifying core blocks...");
         modifyCoreHeading();
 
-        // Clear the interval after modifying
+        // Clear the interval
         clearInterval(checkReadyInterval);
     } else {
         console.log("Waiting for wp.blocks, wp.hooks, and wp.data...");
