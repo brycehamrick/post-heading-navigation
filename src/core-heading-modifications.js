@@ -12,13 +12,13 @@ function addCustomHeadingAttributes(settings, name) {
             ...settings.attributes,
             navigationLabel: {
                 type: 'string',
-                source: 'meta', // Link attribute to meta
-                meta: 'navigation_label', // Meta key for database
+                source: 'meta', // This tells WP to link it to a meta field
+                meta: 'navigation_label', // Meta key in database
             },
             excludeFromNavigation: {
                 type: 'boolean',
-                source: 'meta', // Link attribute to meta
-                meta: 'exclude_from_navigation', // Meta key for database
+                source: 'meta', // Link to meta field
+                meta: 'exclude_from_navigation', // Meta key in database
             },
         };
     }
@@ -40,13 +40,13 @@ const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((Block
                     <PanelBody title="Navigation Settings">
                         <TextControl
                             label="Navigation Label"
-                            value={navigationLabel}
+                            value={navigationLabel || ''}
                             onChange={(value) => setAttributes({ navigationLabel: value })}
                             help="Custom label for this heading in the navigation menu."
                         />
                         <ToggleControl
                             label="Exclude from Navigation"
-                            checked={excludeFromNavigation}
+                            checked={!!excludeFromNavigation}
                             onChange={(value) => setAttributes({ excludeFromNavigation: value })}
                             help="Exclude this heading from the navigation menu."
                         />
@@ -57,7 +57,7 @@ const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((Block
     };
 }, 'addHeadingInspectorControls');
 
-// Register filters
+// Register filters to add the custom attributes and controls
 addFilter(
     'blocks.registerBlockType',
     'custom/heading-attributes',

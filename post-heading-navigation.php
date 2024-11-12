@@ -22,15 +22,15 @@ class PostHeadingNavigation {
     }
 
     public function __construct() {
-        add_action( 'init', [ $this, 'register_meta_fields' ] ); // Register meta fields first
-        add_action( 'init', [ $this, 'register_block' ] ); // Then register block
+        add_action( 'init', [ $this, 'register_meta_fields' ] );
+        add_action( 'init', [ $this, 'register_block' ] );
         add_action( 'enqueue_block_assets', [ $this, 'enqueue_assets' ] );
         add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
     }
 
-    // Register meta fields for custom heading attributes
+    // Register meta fields for the custom heading attributes
     public function register_meta_fields() {
-        // Register meta field for navigation label
+        // Register the navigation label meta field
         register_post_meta( 'post', 'navigation_label', [
             'type'         => 'string',
             'description'  => 'Custom label for the heading in the navigation menu',
@@ -41,7 +41,7 @@ class PostHeadingNavigation {
             },
         ]);
 
-        // Register meta field for exclude from navigation
+        // Register the exclude from navigation meta field
         register_post_meta( 'post', 'exclude_from_navigation', [
             'type'         => 'boolean',
             'description'  => 'Exclude this heading from the navigation menu',
