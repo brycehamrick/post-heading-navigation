@@ -22,15 +22,16 @@ class PostHeadingNavigation {
     }
 
     public function __construct() {
-        add_action( 'init', [ $this, 'register_block' ] );
+        add_action( 'init', [ $this, 'register_meta_fields' ] ); // Register meta fields first
+        add_action( 'init', [ $this, 'register_block' ] ); // Then register block
         add_action( 'enqueue_block_assets', [ $this, 'enqueue_assets' ] );
         add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
-        add_action( 'init', [ $this, 'register_meta_fields' ] ); // Register meta fields
     }
 
-    // Register meta fields for core heading custom attributes
+    // Register meta fields for custom heading attributes
     public function register_meta_fields() {
-        register_post_meta( '', 'navigation_label', [
+        // Register meta field for navigation label
+        register_post_meta( 'post', 'navigation_label', [
             'type'         => 'string',
             'description'  => 'Custom label for the heading in the navigation menu',
             'single'       => true,
@@ -40,7 +41,8 @@ class PostHeadingNavigation {
             },
         ]);
 
-        register_post_meta( '', 'exclude_from_navigation', [
+        // Register meta field for exclude from navigation
+        register_post_meta( 'post', 'exclude_from_navigation', [
             'type'         => 'boolean',
             'description'  => 'Exclude this heading from the navigation menu',
             'single'       => true,
@@ -123,7 +125,6 @@ class PostHeadingNavigation {
     }
 
     public function enqueue_editor_assets() {
-        // Enqueue the custom block script
         wp_enqueue_script(
             self::SLUG . '-block',
             plugins_url( 'build/post-heading-navigation.js', __FILE__ ),
