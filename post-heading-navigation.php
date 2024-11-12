@@ -58,8 +58,9 @@ class PostHeadingNavigation {
 
         $max_heading_level = isset( $attributes['maxHeadingLevel'] ) ? $attributes['maxHeadingLevel'] : 2;
 
+        // Directly get the post content without applying filters to avoid unintended modifications
         $content = $post->post_content;
-        
+
         // Match all headings up to the specified level
         preg_match_all( '/<h([2-' . $max_heading_level . '])[^>]*>(.*?)<\/h[2-' . $max_heading_level . ']>/i', $content, $matches, PREG_SET_ORDER );
 
@@ -71,14 +72,28 @@ class PostHeadingNavigation {
         $output = '<nav class="post-heading-navigation"><ul>';
         foreach ( $matches as $heading ) {
             $label = $heading[2]; // The inner content of the heading
-            $id = 'h-' . sanitize_title( $label ); // Add the "h-" prefix to match WordPress's format
-            $output .= '<li><a href="#' . esc_attr( $id ) . '">' . esc_html( $label ) . '</a></li>';
+
+            // Get heading attributes from the post content meta
+            $id = 'h-' . sanitize_title( $label );
+
+            // Check for custom attributes (you may need to fetch these from post meta or customize further)
+            $navigation_label = get_post_meta( $post->ID, '_custom_heading_navigation_label', true );
+            $exclude_from_navigation = get_post_meta( $post->ID, '_custom_heading_exclude_from_navigation', true );
+
+            // Exclude if 'Exclude from Navigation' is true
+            if ( $exclude_from_navigation ) {
+                continue;
+            }
+
+            // Use the custom navigation label if available
+            $label = $navigation_label ? esc_html( $navigation_label ) : esc_html( $label );
+
+            $output .= '<li><a href="#' . esc_attr( $id ) . '">' . $label . '</a></li>';
         }
         $output .= '</ul></nav>';
 
         return $output;
     }
-
 
     public function enqueue_assets() {
         // Enqueue frontend styles
