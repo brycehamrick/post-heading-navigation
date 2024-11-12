@@ -31,7 +31,7 @@ class PostHeadingNavigation {
         wp_register_script(
             self::SLUG . '-block',
             plugins_url( 'build/index.js', __FILE__ ),
-            [ 'wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-data' ], // Ensure these dependencies are correct
+            [ 'wp-blocks', 'wp-element', 'wp-components', 'wp-compose', 'wp-hooks', 'wp-block-editor' ], // Ensure these dependencies are correct
             filemtime( plugin_dir_path( __FILE__ ) . 'build/index.js' ),
             true // Load in footer
         );
