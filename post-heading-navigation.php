@@ -53,27 +53,32 @@ class PostHeadingNavigation {
         global $post;
 
         if ( ! $post instanceof WP_Post ) {
-            return ''; // Return early if $post is not available
+            return ''; // Ensure $post is a valid post object
         }
 
         $max_heading_level = isset( $attributes['maxHeadingLevel'] ) ? $attributes['maxHeadingLevel'] : 2;
 
         $content = $post->post_content;
+        
+        // Match all headings up to the specified level
         preg_match_all( '/<h([2-' . $max_heading_level . '])[^>]*>(.*?)<\/h[2-' . $max_heading_level . ']>/i', $content, $matches, PREG_SET_ORDER );
 
         if ( empty( $matches ) ) {
             return '';
         }
 
+        // Generate the navigation list with correctly prefixed IDs
         $output = '<nav class="post-heading-navigation"><ul>';
         foreach ( $matches as $heading ) {
-            $label = $heading[2];
-            $output .= '<li><a href="#' . sanitize_title( $label ) . '">' . esc_html( $label ) . '</a></li>';
+            $label = $heading[2]; // The inner content of the heading
+            $id = 'h-' . sanitize_title( $label ); // Add the "h-" prefix to match WordPress's format
+            $output .= '<li><a href="#' . esc_attr( $id ) . '">' . esc_html( $label ) . '</a></li>';
         }
         $output .= '</ul></nav>';
 
         return $output;
     }
+
 
     public function enqueue_assets() {
         // Enqueue frontend styles
