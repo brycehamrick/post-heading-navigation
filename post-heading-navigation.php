@@ -51,26 +51,25 @@ class PostHeadingNavigation {
         $max_heading_level = isset( $attributes['maxHeadingLevel'] ) ? $attributes['maxHeadingLevel'] : 2;
         $content = $post->post_content;
 
-        // Extract headings up to the specified level from post content
-        preg_match_all( '/<h([2-' . $max_heading_level . '])[^>]*>(.*?)<\/h[2-' . $max_heading_level . ']>/i', $content, $matches, PREG_SET_ORDER );
+        // Extract headings up to the specified level
+        preg_match_all( '/<!-- wp:heading {"level":[2-' . $max_heading_level . '][^}]*} -->(.*?)<!-- \/wp:heading -->/is', $content, $matches, PREG_SET_ORDER );
 
         if ( empty( $matches ) ) {
             return '';
         }
 
-        // Generate the navigation menu
         $output = '<nav class="post-heading-navigation"><ul>';
         foreach ( $matches as $heading ) {
-            $label = $heading[2];
+            $heading_content = $heading[0];
+            $label = strip_tags( $heading[1] );
             $id = 'h-' . sanitize_title( $label );
 
-            // Skip headings marked for exclusion
-            if ( strpos( $heading[0], 'excludeFromNavigation="true"' ) !== false ) {
+            // Check for excludeFromNavigation and navigationLabel attributes
+            if ( strpos( $heading_content, '"excludeFromNavigation":true' ) !== false ) {
                 continue;
             }
 
-            // Use the custom navigation label if specified
-            preg_match( '/navigationLabel="([^"]+)"/', $heading[0], $label_match );
+            preg_match( '/"navigationLabel":"([^"]*)"/', $heading_content, $label_match );
             $label = $label_match ? esc_html( $label_match[1] ) : esc_html( $label );
 
             $output .= '<li><a href="#' . esc_attr( $id ) . '">' . $label . '</a></li>';
@@ -79,6 +78,7 @@ class PostHeadingNavigation {
 
         return $output;
     }
+
 
     public function enqueue_assets() {
         // Enqueue frontend styles
