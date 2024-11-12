@@ -5,8 +5,6 @@ import { Fragment } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 
-console.log("addFilter is available:", typeof addFilter === 'function');
-
 // Register the Post Heading Navigation block
 registerBlockType('custom/post-heading-navigation', {
     title: 'Post Heading Navigation',
@@ -49,6 +47,7 @@ registerBlockType('custom/post-heading-navigation', {
 
 // Add new attributes to the core Heading block
 function addHeadingAttributes(settings, name) {
+    console.log("withInspectorControls is loading");
     if (name === 'core/heading') {
         settings.attributes = {
             ...settings.attributes,
