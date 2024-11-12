@@ -2,36 +2,32 @@ import { wp } from '@wordpress/blocks';
 
 console.log("Script loaded for Post Heading Navigation testing");
 
-const waitForEditor = () => {
-    // Check if the necessary WordPress dependencies are loaded
-    if (typeof wp !== 'undefined' && wp.data && wp.data.select) {
-        console.log("wp and wp.data.select are available");
+const initPlugin = () => {
+    // Check if wp, wp.data, wp.domReady, and wp.hooks are available
+    if (typeof window.wp !== 'undefined' && wp.domReady && wp.hooks && wp.data) {
+        console.log("window.wp, wp.data, wp.domReady, and wp.hooks are available");
 
-        // Use the core/block-editor store to check if the editor is ready
-        const { isEditorReady } = wp.data.select('core/block-editor') || {};
+        // Run after the editor is ready
+        wp.domReady(() => {
+            console.log("Editor is ready, registering filter...");
 
-        if (isEditorReady) {
-            console.log("Editor is fully ready, initializing filter...");
-
-            // Register the filter for block registration
+            // Basic filter to modify core/paragraph block title and log output
             wp.hooks.addFilter(
                 'blocks.registerBlockType',
-                'custom/test-filter-log', // A unique namespace for this filter
+                'custom/test-filter-log',
                 (settings, name) => {
                     console.log(`Filter is being triggered for block: ${name}`);
                     return settings;
                 }
             );
+        });
 
-            // Stop the interval once initialization is complete
-            clearInterval(waitForEditorInterval);
-        } else {
-            console.log("Editor not yet fully ready, waiting...");
-        }
+        // Stop the interval once everything is loaded
+        clearInterval(checkReadyInterval);
     } else {
-        console.log("wp.data or wp.data.select is not available yet, waiting...");
+        console.log("Waiting for window.wp and dependencies...");
     }
 };
 
-// Set an interval to periodically check for editor readiness
-const waitForEditorInterval = setInterval(waitForEditor, 100);
+// Check every 100ms if wp, wp.data, and dependencies are ready
+const checkReadyInterval = setInterval(initPlugin, 100);
