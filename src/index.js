@@ -1,20 +1,14 @@
 import { wp } from '@wordpress/blocks';
 
-// Basic script load confirmation
 console.log("Script loaded for Post Heading Navigation testing");
-
-// Check for `wp.domReady` and `wp.hooks` availability
 console.log("Checking for wp.hooks and wp.domReady...");
 
-// Confirm if wp.hooks and wp.domReady are accessible
-if (typeof wp.domReady === 'function') {
-    console.log("wp.domReady is available");
+const initPlugin = () => {
+    if (typeof window.wp !== 'undefined' && wp.domReady && wp.hooks) {
+        console.log("wp.hooks and wp.domReady are available");
 
-    wp.domReady(() => {
-        console.log("Editor is ready, registering filter...");
-
-        if (wp.hooks && typeof wp.hooks.addFilter === 'function') {
-            console.log("wp.hooks.addFilter is available");
+        wp.domReady(() => {
+            console.log("Editor is ready, registering filter...");
 
             // Basic filter to modify core/paragraph block title and log output
             function modifyParagraphBlock(settings, name) {
@@ -31,10 +25,14 @@ if (typeof wp.domReady === 'function') {
                 'custom/modify-paragraph-block', // Unique namespace
                 modifyParagraphBlock // Function to apply in this filter
             );
-        } else {
-            console.log("wp.hooks.addFilter is not available");
-        }
-    });
-} else {
-    console.log("wp.domReady is not available");
-}
+        });
+
+        // Clear the interval once the dependencies are loaded
+        clearInterval(checkReadyInterval);
+    } else {
+        console.log("Waiting for wp.hooks and wp.domReady...");
+    }
+};
+
+// Set an interval to check if wp.hooks and wp.domReady are available
+const checkReadyInterval = setInterval(initPlugin, 100);
