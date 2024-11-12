@@ -4,22 +4,19 @@ const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.hooks && wp.data) {
         console.log("wp.hooks and wp.data are available");
 
-        // Register a filter on `blocks.getBlockTypes` to confirm it triggers
+        // Register a custom filter
         wp.hooks.addFilter(
-            'blocks.getBlockTypes',
+            'custom.testFilter',
             'custom/test-filter-log',
-            (blockTypes) => {
-                console.log("blocks.getBlockTypes filter triggered");
-                blockTypes.forEach((blockType) => {
-                    console.log(`Registered block: ${blockType.name}`);
-                });
-                return blockTypes;
+            (content) => {
+                console.log("custom.testFilter triggered");
+                return content + " - Filtered Content";
             }
         );
 
-        // Trigger the filter by calling `wp.blocks.getBlockTypes()` directly
-        const allBlocks = wp.blocks.getBlockTypes();
-        console.log("Direct call to getBlockTypes:", allBlocks);
+        // Apply the custom filter directly to test if it works
+        const result = wp.hooks.applyFilters('custom.testFilter', 'Original Content');
+        console.log("Result after applying custom.testFilter:", result);
 
         // Clear interval to stop further checks
         clearInterval(checkReadyInterval);
