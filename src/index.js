@@ -1,11 +1,10 @@
-import { wp } from '@wordpress/blocks';
-
 console.log("Script loaded for Post Heading Navigation testing");
-console.log("Checking for wp.hooks and wp.domReady...");
+console.log("Checking for window.wp and dependencies...");
 
+// Function to initialize the plugin only when all dependencies are available
 const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.domReady && wp.hooks) {
-        console.log("wp.hooks and wp.domReady are available");
+        console.log("window.wp, wp.hooks, and wp.domReady are available");
 
         wp.domReady(() => {
             console.log("Editor is ready, registering filter...");
@@ -27,12 +26,12 @@ const initPlugin = () => {
             );
         });
 
-        // Clear the interval once the dependencies are loaded
+        // Clear the interval once everything is loaded
         clearInterval(checkReadyInterval);
     } else {
-        console.log("Waiting for wp.hooks and wp.domReady...");
+        console.log("Waiting for window.wp and dependencies...");
     }
 };
 
-// Set an interval to check if wp.hooks and wp.domReady are available
+// Set an interval to check if wp and required dependencies are available
 const checkReadyInterval = setInterval(initPlugin, 100);
