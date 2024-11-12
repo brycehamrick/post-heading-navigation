@@ -76,8 +76,6 @@ const modifyCoreHeading = () => {
 
         // Directly render Inspector controls on core/heading block
         const addHeadingInspectorControls = (BlockEdit) => (props) => {
-            console.log("Filter triggered for:", props.name);  // Logs each block's name when this filter triggers
-
             if (props.name !== 'core/heading') {
                 return <BlockEdit {...props} />;
             }
@@ -117,13 +115,13 @@ const modifyCoreHeading = () => {
             addHeadingInspectorControls
         );
 
-        console.log("Filter for editor.BlockEdit registered");
+        console.log("Filter for editor.BlockEdit registered successfully");
     } else {
         console.log("core/heading block not found");
     }
 };
 
-// Initialize after dependencies are available
+// Initialize modifications after dependencies are available
 const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.blocks && wp.hooks && wp.data) {
         console.log("Dependencies available. Modifying core blocks...");
