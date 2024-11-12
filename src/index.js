@@ -65,6 +65,7 @@ function addHeadingAttributes(settings, name) {
 
 // Add controls to the Heading block sidebar
 const withInspectorControls = createHigherOrderComponent((BlockEdit) => {
+    console.log("withInspectorControls is loading");
     return (props) => {
         if (props.name !== 'core/heading') return <BlockEdit {...props} />;
 
