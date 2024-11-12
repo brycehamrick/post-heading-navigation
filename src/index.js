@@ -83,8 +83,13 @@ const withInspectorControls = createHigherOrderComponent((BlockEdit) => {
     };
 }, 'withInspectorControls');
 
-(function() {
-    console.log("Initializing Post Heading Navigation filters");
+// Singleton flag to ensure filters are registered only once
+let filtersRegistered = false;
+
+if (!filtersRegistered) {
+    filtersRegistered = true; // Set flag to prevent re-registering
+
+    console.log("Registering Post Heading Navigation filters");
 
     // Register filters using wp.hooks.addFilter directly
     wp.hooks.addFilter(
@@ -92,9 +97,10 @@ const withInspectorControls = createHigherOrderComponent((BlockEdit) => {
         'custom/heading-attributes',
         addHeadingAttributes
     );
+
     wp.hooks.addFilter(
         'blocks.BlockEdit',
         'custom/with-inspector-controls',
         withInspectorControls
     );
-})();
+}
