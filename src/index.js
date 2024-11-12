@@ -7,7 +7,7 @@ import { addFilter } from '@wordpress/hooks';
 
 console.log("Script loaded for Post Heading Navigation");
 
-// Step 1: Register the Custom Block
+// Step 1: Register the Custom Block (Post Heading Navigation)
 registerBlockType('custom/post-heading-navigation', {
     title: 'Post Heading Navigation',
     icon: 'list-view',
@@ -47,90 +47,93 @@ registerBlockType('custom/post-heading-navigation', {
     },
 });
 
-// Step 2: Add Custom Attributes and Controls to the Core Heading Block
+// Step 2: Add Custom Attributes and Inspector Controls to Core Heading Block
+const modifyCoreHeading = () => {
+    const headingBlock = wp.blocks.getBlockType('core/heading');
+
+    if (headingBlock) {
+        console.log("Modifying core/heading block...");
+
+        // Define new attributes
+        const customHeadingSettings = {
+            attributes: {
+                ...headingBlock.attributes,
+                navigationLabel: {
+                    type: 'string',
+                    default: '',
+                },
+                excludeFromNavigation: {
+                    type: 'boolean',
+                    default: false,
+                }
+            }
+        };
+
+        // Add Inspector Controls
+        const addHeadingInspectorControls = createHigherOrderComponent((BlockEdit) => {
+            return (props) => {
+                if (props.name !== 'core/heading') {
+                    return <BlockEdit {...props} />;
+                }
+
+                const { attributes, setAttributes } = props;
+                const { navigationLabel, excludeFromNavigation } = attributes;
+
+                return (
+                    <Fragment>
+                        <BlockEdit {...props} />
+                        <InspectorControls>
+                            <PanelBody title="Navigation Settings">
+                                <TextControl
+                                    label="Navigation Label"
+                                    value={navigationLabel}
+                                    onChange={(value) => setAttributes({ navigationLabel: value })}
+                                    help="Custom label for this heading in the navigation menu."
+                                />
+                                <ToggleControl
+                                    label="Exclude from Navigation"
+                                    checked={excludeFromNavigation}
+                                    onChange={(value) => setAttributes({ excludeFromNavigation: value })}
+                                    help="Exclude this heading from the navigation menu."
+                                />
+                            </PanelBody>
+                        </InspectorControls>
+                    </Fragment>
+                );
+            };
+        }, 'addHeadingInspectorControls');
+
+        // Register the Inspector Controls filter
+        addFilter(
+            'editor.BlockEdit',
+            'custom/heading-inspector-controls',
+            addHeadingInspectorControls
+        );
+
+        // Re-register the core/heading block with the custom settings
+        wp.blocks.unregisterBlockType('core/heading');
+        wp.blocks.registerBlockType('core/heading', { ...headingBlock, ...customHeadingSettings });
+
+        console.log("core/heading block modified successfully with custom attributes");
+    } else {
+        console.log("core/heading block not found");
+    }
+};
+
+// Initialize after dependencies are available
 const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.blocks && wp.hooks && wp.data) {
-        console.log("wp, wp.blocks, wp.hooks, and wp.data are available");
+        console.log("Dependencies available. Modifying core blocks...");
+        modifyCoreHeading();
 
-        // Access the original core/heading block type
-        const headingBlock = wp.blocks.getBlockType('core/heading');
-
-        if (headingBlock) {
-            console.log("Original core/heading settings:", headingBlock);
-
-            // Define custom attributes for navigation label and exclusion toggle
-            const customHeadingSettings = {
-                attributes: {
-                    ...headingBlock.attributes,
-                    navigationLabel: {
-                        type: 'string',
-                        default: '',
-                    },
-                    excludeFromNavigation: {
-                        type: 'boolean',
-                        default: false,
-                    }
-                }
-            };
-
-            // Add inspector controls for the custom attributes
-            const addHeadingInspectorControls = createHigherOrderComponent((BlockEdit) => {
-                return (props) => {
-                    if (props.name !== 'core/heading') {
-                        return <BlockEdit {...props} />;
-                    }
-
-                    const { attributes, setAttributes } = props;
-                    const { navigationLabel, excludeFromNavigation } = attributes;
-
-                    return (
-                        <Fragment>
-                            <BlockEdit {...props} />
-                            <InspectorControls>
-                                <PanelBody title="Navigation Settings">
-                                    <TextControl
-                                        label="Navigation Label"
-                                        value={navigationLabel}
-                                        onChange={(value) => setAttributes({ navigationLabel: value })}
-                                        help="Custom label for this heading in the navigation menu."
-                                    />
-                                    <ToggleControl
-                                        label="Exclude from Navigation"
-                                        checked={excludeFromNavigation}
-                                        onChange={(value) => setAttributes({ excludeFromNavigation: value })}
-                                        help="Exclude this heading from the navigation menu."
-                                    />
-                                </PanelBody>
-                            </InspectorControls>
-                        </Fragment>
-                    );
-                };
-            }, 'addHeadingInspectorControls');
-
-            // Register filter to add inspector controls for `core/heading`
-            addFilter(
-                'editor.BlockEdit',
-                'custom/heading-inspector-controls',
-                addHeadingInspectorControls
-            );
-
-            // Unregister and re-register the modified core/heading block
-            wp.blocks.unregisterBlockType('core/heading');
-            wp.blocks.registerBlockType('core/heading', { ...headingBlock, ...customHeadingSettings });
-
-            console.log("core/heading block modified successfully");
-        } else {
-            console.log("core/heading block not found");
-        }
-
-        // Stop the interval after modifications are applied
+        // Clear the interval
         clearInterval(checkReadyInterval);
     } else {
         console.log("Waiting for wp.blocks, wp.hooks, and wp.data...");
     }
 };
 
-// Set interval to check dependencies after DOMContentLoaded
+// Run initialization on DOMContentLoaded
 let checkReadyInterval;
 window.addEventListener('DOMContentLoaded', () => {
     console.log("DOMContentLoaded event fired, starting wp dependency check...");
