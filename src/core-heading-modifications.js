@@ -5,106 +5,67 @@ import { Fragment } from '@wordpress/element';
 
 console.log("Script loaded for Core Heading Modifications");
 
-const initCoreHeadingModifications = () => {
-    if (typeof window.wp !== 'undefined' && wp.blocks && wp.hooks && wp.data) {
-        console.log("wp, wp.blocks, wp.hooks, and wp.data are available");
-
-        const headingBlock = wp.blocks.getBlockType('core/heading');
-
-        if (headingBlock) {
-            console.log("Original core/heading settings:", headingBlock);
-
-            const customHeadingSettings = {
-                attributes: {
-                    ...headingBlock.attributes,
-                    navigationLabel: {
-                        type: 'string',
-                        default: '',
-                    },
-                    excludeFromNavigation: {
-                        type: 'boolean',
-                        default: false,
-                    }
-                }
-            };
-
-            const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((BlockEdit) => {
-                return (props) => {
-                    if (props.name !== 'core/heading') {
-                        return <BlockEdit {...props} />;
-                    }
-
-                    const { attributes, setAttributes } = props;
-                    const { navigationLabel, excludeFromNavigation } = attributes;
-
-                    return (
-                        <>
-                            <BlockEdit {...props} />
-                            <InspectorControls>
-                                <PanelBody title="Navigation Settings">
-                                    <TextControl
-                                        label="Navigation Label"
-                                        value={navigationLabel}
-                                        onChange={(value) => setAttributes({ navigationLabel: value })}
-                                        help="Custom label for this heading in the navigation menu."
-                                    />
-                                    <ToggleControl
-                                        label="Exclude from Navigation"
-                                        checked={excludeFromNavigation}
-                                        onChange={(value) => setAttributes({ excludeFromNavigation: value })}
-                                        help="Exclude this heading from the navigation menu."
-                                    />
-                                </PanelBody>
-                            </InspectorControls>
-                        </>
-                    );
-                };
-            }, 'addHeadingInspectorControls');
-
-            const saveCustomAttributes = (extraProps, blockType, attributes) => {
-                if (blockType.name === 'core/heading') {
-                    if (attributes.navigationLabel) {
-                        extraProps['data-navigation-label'] = attributes.navigationLabel;
-                    }
-                    if (attributes.excludeFromNavigation) {
-                        extraProps['data-exclude-from-navigation'] = attributes.excludeFromNavigation;
-                    }
-                }
-                return extraProps;
-            };
-
-            // Register the filter to add inspector controls
-            wp.hooks.addFilter(
-                'editor.BlockEdit',
-                'custom/heading-inspector-controls',
-                addHeadingInspectorControls
-            );
-
-            // Register the filter to save custom attributes to block content
-            wp.hooks.addFilter(
-                'blocks.getSaveContent.extraProps',
-                'custom/save-heading-attributes',
-                saveCustomAttributes
-            );
-
-            // Unregister and re-register the modified core/heading block type
-            wp.blocks.unregisterBlockType('core/heading');
-            wp.blocks.registerBlockType('core/heading', { ...headingBlock, ...customHeadingSettings });
-
-            console.log("core/heading block modified successfully");
-        } else {
-            console.log("core/heading block not found");
-        }
-
-        // Stop interval after modification
-        clearInterval(checkReadyInterval);
-    } else {
-        console.log("Waiting for wp.blocks, wp.hooks, and wp.data...");
+// Add custom attributes to the core/heading block type
+function addCustomHeadingAttributes(settings, name) {
+    if (name === 'core/heading') {
+        settings.attributes = {
+            ...settings.attributes,
+            navigationLabel: {
+                type: 'string',
+                source: 'meta', // Link attribute to meta
+                meta: 'navigation_label', // Meta key for database
+            },
+            excludeFromNavigation: {
+                type: 'boolean',
+                source: 'meta', // Link attribute to meta
+                meta: 'exclude_from_navigation', // Meta key for database
+            },
+        };
     }
-};
+    return settings;
+}
 
-let checkReadyInterval;
-window.addEventListener('DOMContentLoaded', () => {
-    console.log("DOMContentLoaded event fired, starting wp dependency check for core/heading modifications...");
-    checkReadyInterval = setInterval(initCoreHeadingModifications, 100);
-});
+// Add custom controls to core/heading block in the editor
+const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((BlockEdit) => {
+    return (props) => {
+        if (props.name !== 'core/heading') return <BlockEdit {...props} />;
+
+        const { attributes, setAttributes } = props;
+        const { navigationLabel, excludeFromNavigation } = attributes;
+
+        return (
+            <Fragment>
+                <BlockEdit {...props} />
+                <InspectorControls>
+                    <PanelBody title="Navigation Settings">
+                        <TextControl
+                            label="Navigation Label"
+                            value={navigationLabel}
+                            onChange={(value) => setAttributes({ navigationLabel: value })}
+                            help="Custom label for this heading in the navigation menu."
+                        />
+                        <ToggleControl
+                            label="Exclude from Navigation"
+                            checked={excludeFromNavigation}
+                            onChange={(value) => setAttributes({ excludeFromNavigation: value })}
+                            help="Exclude this heading from the navigation menu."
+                        />
+                    </PanelBody>
+                </InspectorControls>
+            </Fragment>
+        );
+    };
+}, 'addHeadingInspectorControls');
+
+// Register filters
+addFilter(
+    'blocks.registerBlockType',
+    'custom/heading-attributes',
+    addCustomHeadingAttributes
+);
+
+addFilter(
+    'editor.BlockEdit',
+    'custom/heading-inspector-controls',
+    addHeadingInspectorControls
+);

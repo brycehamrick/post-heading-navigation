@@ -25,6 +25,30 @@ class PostHeadingNavigation {
         add_action( 'init', [ $this, 'register_block' ] );
         add_action( 'enqueue_block_assets', [ $this, 'enqueue_assets' ] );
         add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
+        add_action( 'init', [ $this, 'register_meta_fields' ] ); // Register meta fields
+    }
+
+    // Register meta fields for core heading custom attributes
+    public function register_meta_fields() {
+        register_post_meta( '', 'navigation_label', [
+            'type'         => 'string',
+            'description'  => 'Custom label for the heading in the navigation menu',
+            'single'       => true,
+            'show_in_rest' => true,
+            'auth_callback' => function() {
+                return current_user_can('edit_posts');
+            },
+        ]);
+
+        register_post_meta( '', 'exclude_from_navigation', [
+            'type'         => 'boolean',
+            'description'  => 'Exclude this heading from the navigation menu',
+            'single'       => true,
+            'show_in_rest' => true,
+            'auth_callback' => function() {
+                return current_user_can('edit_posts');
+            },
+        ]);
     }
 
     public function register_block() {
@@ -61,8 +85,10 @@ class PostHeadingNavigation {
         foreach ( $matches as $heading ) {
             $label = $heading[2];
             $id = 'h-' . sanitize_title( $label );
-            $navigation_label = get_post_meta( $post->ID, '_custom_heading_navigation_label', true );
-            $exclude_from_navigation = get_post_meta( $post->ID, '_custom_heading_exclude_from_navigation', true );
+
+            // Fetch meta values for each heading
+            $navigation_label = get_post_meta( $post->ID, 'navigation_label', true );
+            $exclude_from_navigation = get_post_meta( $post->ID, 'exclude_from_navigation', true );
 
             if ( $exclude_from_navigation ) {
                 continue;
@@ -97,6 +123,7 @@ class PostHeadingNavigation {
     }
 
     public function enqueue_editor_assets() {
+        // Enqueue the custom block script
         wp_enqueue_script(
             self::SLUG . '-block',
             plugins_url( 'build/post-heading-navigation.js', __FILE__ ),
