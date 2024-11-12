@@ -5,6 +5,8 @@ import { Fragment } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 
+console.log("addFilter is available:", typeof addFilter === 'function');
+
 // Register the Post Heading Navigation block
 registerBlockType('custom/post-heading-navigation', {
     title: 'Post Heading Navigation',

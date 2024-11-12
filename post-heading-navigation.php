@@ -24,6 +24,7 @@ class PostHeadingNavigation {
     public function __construct() {
         add_action( 'init', [ $this, 'register_block' ] );
         add_action( 'enqueue_block_assets', [ $this, 'enqueue_assets' ] );
+        add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
     }
 
     public function register_block() {
@@ -113,6 +114,11 @@ class PostHeadingNavigation {
                 POST_HEADING_NAVIGATION_VERSION
             );
         }
+    }
+
+    public function enqueue_editor_assets() {
+        // Ensure the script is enqueued only in the editor
+        wp_enqueue_script( self::SLUG . '-block' );
     }
 }
 
