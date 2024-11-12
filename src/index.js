@@ -4,13 +4,22 @@ const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.hooks && wp.data) {
         console.log("wp.hooks and wp.data are available");
 
-        // Test wp.hooks by adding and triggering a custom action
-        wp.hooks.addAction('custom.testAction', 'custom/test-action-log', () => {
-            console.log("custom.testAction was triggered successfully!");
-        });
+        // Register a filter on `blocks.getBlockTypes` to confirm it triggers
+        wp.hooks.addFilter(
+            'blocks.getBlockTypes',
+            'custom/test-filter-log',
+            (blockTypes) => {
+                console.log("blocks.getBlockTypes filter triggered");
+                blockTypes.forEach((blockType) => {
+                    console.log(`Registered block: ${blockType.name}`);
+                });
+                return blockTypes;
+            }
+        );
 
-        // Trigger the action
-        wp.hooks.doAction('custom.testAction');
+        // Trigger the filter by calling `wp.blocks.getBlockTypes()` directly
+        const allBlocks = wp.blocks.getBlockTypes();
+        console.log("Direct call to getBlockTypes:", allBlocks);
 
         // Clear interval to stop further checks
         clearInterval(checkReadyInterval);
@@ -19,7 +28,7 @@ const initPlugin = () => {
     }
 };
 
-// Check if wp, wp.hooks, and wp.data are available after DOMContentLoaded
+// Set interval to check if wp, wp.hooks, and wp.data are available after DOMContentLoaded
 let checkReadyInterval;
 window.addEventListener('DOMContentLoaded', () => {
     console.log("DOMContentLoaded event fired, starting wp dependency check...");
