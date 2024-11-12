@@ -2,7 +2,6 @@ import { registerBlockType } from '@wordpress/blocks';
 import { InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, SelectControl, TextControl, ToggleControl } from '@wordpress/components';
 import { Fragment } from '@wordpress/element'; 
-import { addFilter } from '@wordpress/hooks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 
 // Register the Post Heading Navigation block
@@ -97,12 +96,12 @@ const withInspectorControls = createHigherOrderComponent((BlockEdit) => {
 }, 'withInspectorControls');
 
 // Register filters to extend the Heading block
-addFilter(
+wp.hooks.addFilter(
     'blocks.registerBlockType',
     'custom/heading-attributes',
     addHeadingAttributes
 );
-addFilter(
+wp.hooks.addFilter(
     'blocks.BlockEdit',
     'custom/with-inspector-controls',
     withInspectorControls
