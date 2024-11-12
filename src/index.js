@@ -11,6 +11,7 @@ const initPlugin = () => {
 
             // Basic filter to modify core/paragraph block title and log output
             function modifyParagraphBlock(settings, name) {
+                console.log(`Filter is running for block: ${name}`);
                 if (name === 'core/paragraph') {
                     console.log("Modifying core/paragraph block settings");
                     settings.title = "Modified Paragraph Block"; // Change title for testing
