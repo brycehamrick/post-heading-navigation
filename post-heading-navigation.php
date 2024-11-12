@@ -22,39 +22,13 @@ class PostHeadingNavigation {
     }
 
     public function __construct() {
-        add_action( 'init', [ $this, 'register_meta_fields' ] );
         add_action( 'init', [ $this, 'register_block' ] );
         add_action( 'enqueue_block_assets', [ $this, 'enqueue_assets' ] );
         add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
     }
 
-    // Register meta fields for the custom heading attributes
-    public function register_meta_fields() {
-        // Register the navigation label meta field
-        register_post_meta( 'post', 'navigation_label', [
-            'type'         => 'string',
-            'description'  => 'Custom label for the heading in the navigation menu',
-            'single'       => true,
-            'show_in_rest' => true,
-            'auth_callback' => function() {
-                return current_user_can('edit_posts');
-            },
-        ]);
-
-        // Register the exclude from navigation meta field
-        register_post_meta( 'post', 'exclude_from_navigation', [
-            'type'         => 'boolean',
-            'description'  => 'Exclude this heading from the navigation menu',
-            'single'       => true,
-            'show_in_rest' => true,
-            'auth_callback' => function() {
-                return current_user_can('edit_posts');
-            },
-        ]);
-    }
-
     public function register_block() {
-        // Register the block type
+        // Register the block type for Post Heading Navigation
         register_block_type( 'custom/post-heading-navigation', [
             'editor_script' => self::SLUG . '-block',
             'render_callback' => [ $this, 'render_navigation_block' ],
@@ -77,26 +51,28 @@ class PostHeadingNavigation {
         $max_heading_level = isset( $attributes['maxHeadingLevel'] ) ? $attributes['maxHeadingLevel'] : 2;
         $content = $post->post_content;
 
+        // Extract headings up to the specified level from post content
         preg_match_all( '/<h([2-' . $max_heading_level . '])[^>]*>(.*?)<\/h[2-' . $max_heading_level . ']>/i', $content, $matches, PREG_SET_ORDER );
 
         if ( empty( $matches ) ) {
             return '';
         }
 
+        // Generate the navigation menu
         $output = '<nav class="post-heading-navigation"><ul>';
         foreach ( $matches as $heading ) {
             $label = $heading[2];
             $id = 'h-' . sanitize_title( $label );
 
-            // Fetch meta values for each heading
-            $navigation_label = get_post_meta( $post->ID, 'navigation_label', true );
-            $exclude_from_navigation = get_post_meta( $post->ID, 'exclude_from_navigation', true );
-
-            if ( $exclude_from_navigation ) {
+            // Skip headings marked for exclusion
+            if ( strpos( $heading[0], 'excludeFromNavigation="true"' ) !== false ) {
                 continue;
             }
 
-            $label = $navigation_label ? esc_html( $navigation_label ) : esc_html( $label );
+            // Use the custom navigation label if specified
+            preg_match( '/navigationLabel="([^"]+)"/', $heading[0], $label_match );
+            $label = $label_match ? esc_html( $label_match[1] ) : esc_html( $label );
+
             $output .= '<li><a href="#' . esc_attr( $id ) . '">' . $label . '</a></li>';
         }
         $output .= '</ul></nav>';
@@ -125,6 +101,7 @@ class PostHeadingNavigation {
     }
 
     public function enqueue_editor_assets() {
+        // Enqueue the Post Heading Navigation block script
         wp_enqueue_script(
             self::SLUG . '-block',
             plugins_url( 'build/post-heading-navigation.js', __FILE__ ),

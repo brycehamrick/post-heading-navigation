@@ -5,27 +5,25 @@ import { Fragment } from '@wordpress/element';
 
 console.log("Script loaded for Core Heading Modifications");
 
-// Add custom attributes to the core/heading block type
+// Add custom attributes to core/heading block
 function addCustomHeadingAttributes(settings, name) {
     if (name === 'core/heading') {
         settings.attributes = {
             ...settings.attributes,
             navigationLabel: {
                 type: 'string',
-                source: 'meta', // This tells WP to link it to a meta field
-                meta: 'navigation_label', // Meta key in database
+                default: '', // Optional label for the navigation
             },
             excludeFromNavigation: {
                 type: 'boolean',
-                source: 'meta', // Link to meta field
-                meta: 'exclude_from_navigation', // Meta key in database
+                default: false, // Option to exclude from navigation
             },
         };
     }
     return settings;
 }
 
-// Add custom controls to core/heading block in the editor
+// Add custom controls to core/heading block
 const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((BlockEdit) => {
     return (props) => {
         if (props.name !== 'core/heading') return <BlockEdit {...props} />;
@@ -40,13 +38,13 @@ const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((Block
                     <PanelBody title="Navigation Settings">
                         <TextControl
                             label="Navigation Label"
-                            value={navigationLabel || ''}
+                            value={navigationLabel}
                             onChange={(value) => setAttributes({ navigationLabel: value })}
                             help="Custom label for this heading in the navigation menu."
                         />
                         <ToggleControl
                             label="Exclude from Navigation"
-                            checked={!!excludeFromNavigation}
+                            checked={excludeFromNavigation}
                             onChange={(value) => setAttributes({ excludeFromNavigation: value })}
                             help="Exclude this heading from the navigation menu."
                         />
@@ -57,7 +55,7 @@ const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((Block
     };
 }, 'addHeadingInspectorControls');
 
-// Register filters to add the custom attributes and controls
+// Register filters to add custom attributes and controls
 addFilter(
     'blocks.registerBlockType',
     'custom/heading-attributes',
