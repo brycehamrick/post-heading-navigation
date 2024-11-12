@@ -4,18 +4,33 @@ const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.blocks && wp.hooks && wp.data) {
         console.log("wp, wp.blocks, wp.hooks, and wp.data are available");
 
-        // Directly get and log block types using `wp.blocks.getBlockTypes`
-        const allBlocks = wp.blocks.getBlockTypes();
-        console.log("Retrieved block types directly:", allBlocks.map(block => block.name));
+        // Register a simple custom block
+        wp.blocks.registerBlockType('custom/test-block', {
+            title: 'Test Block',
+            category: 'widgets',
+            icon: 'smiley',
+            edit: () => wp.element.createElement('p', null, 'This is a test block.'),
+            save: () => wp.element.createElement('p', null, 'This is a test block.')
+        });
 
-        // Stop the interval after logging
+        // Apply `blocks.registerBlockType` to see if it triggers for new blocks
+        wp.hooks.addFilter(
+            'blocks.registerBlockType',
+            'custom/test-register-log',
+            (settings, name) => {
+                console.log(`blocks.registerBlockType triggered for block: ${name}`);
+                return settings;
+            }
+        );
+
+        // Stop interval after registration
         clearInterval(checkReadyInterval);
     } else {
         console.log("Waiting for wp.blocks, wp.hooks, and wp.data...");
     }
 };
 
-// Set an interval to check for dependencies after DOMContentLoaded
+// Set interval to check dependencies after DOMContentLoaded
 let checkReadyInterval;
 window.addEventListener('DOMContentLoaded', () => {
     console.log("DOMContentLoaded event fired, starting wp dependency check...");
