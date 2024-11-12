@@ -4,6 +4,8 @@ import { PanelBody, SelectControl, TextControl, ToggleControl } from '@wordpress
 import { Fragment } from '@wordpress/element';
 import { createHigherOrderComponent } from '@wordpress/compose';
 
+console.log("Initializing Post Heading Navigation");
+
 // Register the Post Heading Navigation block
 registerBlockType('custom/post-heading-navigation', {
     title: 'Post Heading Navigation',
@@ -46,7 +48,7 @@ registerBlockType('custom/post-heading-navigation', {
 
 // Add new attributes to the core Heading block
 function addHeadingAttributes(settings, name) {
-    console.log("addHeadingAttributes is loading");
+    console.log("addHeadingAttributes is running");
     if (name === 'core/heading') {
         settings.attributes = {
             ...settings.attributes,
@@ -65,7 +67,7 @@ function addHeadingAttributes(settings, name) {
 
 // Add controls to the Heading block sidebar
 const withInspectorControls = createHigherOrderComponent((BlockEdit) => {
-    console.log("withInspectorControls is loading");
+    console.log("withInspectorControls is running");
     return (props) => {
         if (props.name !== 'core/heading') return <BlockEdit {...props} />;
 
@@ -95,9 +97,9 @@ const withInspectorControls = createHigherOrderComponent((BlockEdit) => {
     };
 }, 'withInspectorControls');
 
-// Register filters with single execution using `once`
-wp.hooks.addAction('init', 'custom/init-filters', () => {
-    console.log("Registering Post Heading Navigation filters");
+// Register filters immediately using IIFE to ensure single registration
+(() => {
+    console.log("Registering filters for Post Heading Navigation");
 
     wp.hooks.addFilter(
         'blocks.registerBlockType',
@@ -110,4 +112,4 @@ wp.hooks.addAction('init', 'custom/init-filters', () => {
         'custom/with-inspector-controls',
         withInspectorControls
     );
-}, { once: true }); // Ensures these filters are added only once
+})();
