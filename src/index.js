@@ -1,47 +1,78 @@
-console.log("Script loaded for Post Heading Navigation testing");
+console.log("Script loaded for Post Heading Navigation");
 
 const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.blocks && wp.hooks && wp.data) {
         console.log("wp, wp.blocks, wp.hooks, and wp.data are available");
 
-        // Check if the core/paragraph block type is registered
-        const paragraphBlock = wp.blocks.getBlockType('core/paragraph');
+        // Access the original core/heading block type
+        const headingBlock = wp.blocks.getBlockType('core/heading');
 
-        if (paragraphBlock) {
-            console.log("Original core/paragraph settings:", paragraphBlock);
+        if (headingBlock) {
+            console.log("Original core/heading settings:", headingBlock);
 
-            // Define the custom attributes and settings we want to add
-            const customSettings = {
-                title: 'Modified Paragraph Block',
+            // Define the custom attributes and settings for navigation
+            const customHeadingSettings = {
                 attributes: {
-                    ...paragraphBlock.attributes,
-                    customAttribute: {
+                    ...headingBlock.attributes,
+                    navigationLabel: {
                         type: 'string',
-                        default: 'This is a custom attribute'
+                        default: '', // Default to an empty string, use heading text if empty
+                    },
+                    excludeFromNavigation: {
+                        type: 'boolean',
+                        default: false, // Default to false, meaning included in navigation
                     }
                 }
             };
 
-            // Use a custom function to "re-register" the block type with new settings
-            wp.hooks.addFilter(
-                'blocks.registerBlockType',
-                'custom/modify-paragraph-block',
-                (settings, name) => {
-                    if (name === 'core/paragraph') {
-                        console.log("Applying custom settings to core/paragraph");
-                        return { ...settings, ...customSettings };
+            // Add custom controls for the new attributes
+            const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((BlockEdit) => {
+                return (props) => {
+                    if (props.name !== 'core/heading') {
+                        return <BlockEdit {...props} />;
                     }
-                    return settings;
-                }
+
+                    const { attributes, setAttributes } = props;
+                    const { navigationLabel, excludeFromNavigation } = attributes;
+
+                    return (
+                        <>
+                            <BlockEdit {...props} />
+                            <wp.blockEditor.InspectorControls>
+                                <wp.components.PanelBody title="Navigation Settings">
+                                    <wp.components.TextControl
+                                        label="Navigation Label"
+                                        value={navigationLabel}
+                                        onChange={(value) => setAttributes({ navigationLabel: value })}
+                                        help="Custom label for this heading in the navigation menu."
+                                    />
+                                    <wp.components.ToggleControl
+                                        label="Exclude from Navigation"
+                                        checked={excludeFromNavigation}
+                                        onChange={(value) => setAttributes({ excludeFromNavigation: value })}
+                                        help="Exclude this heading from the navigation menu."
+                                    />
+                                </wp.components.PanelBody>
+                            </wp.blockEditor.InspectorControls>
+                        </>
+                    );
+                };
+            }, 'addHeadingInspectorControls');
+
+            // Register the filter to add inspector controls
+            wp.hooks.addFilter(
+                'editor.BlockEdit',
+                'custom/heading-inspector-controls',
+                addHeadingInspectorControls
             );
 
-            // Force re-registration by removing and re-adding the block type
-            wp.blocks.unregisterBlockType('core/paragraph');
-            wp.blocks.registerBlockType('core/paragraph', { ...paragraphBlock, ...customSettings });
+            // Unregister and re-register the modified core/heading block type
+            wp.blocks.unregisterBlockType('core/heading');
+            wp.blocks.registerBlockType('core/heading', { ...headingBlock, ...customHeadingSettings });
 
-            console.log("core/paragraph block modified successfully");
+            console.log("core/heading block modified successfully");
         } else {
-            console.log("core/paragraph block not found");
+            console.log("core/heading block not found");
         }
 
         // Stop interval after modification
