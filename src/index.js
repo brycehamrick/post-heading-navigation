@@ -104,7 +104,7 @@ addFilter(
     addHeadingAttributes
 );
 addFilter(
-    'editor.BlockEdit',
+    'blocks.BlockEdit',
     'custom/with-inspector-controls',
     withInspectorControls
 );
