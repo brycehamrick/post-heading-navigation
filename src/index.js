@@ -69,48 +69,7 @@ const modifyCoreHeading = () => {
             }
         };
 
-        // Add Inspector Controls
-        const addHeadingInspectorControls = createHigherOrderComponent((BlockEdit) => {
-            return (props) => {
-                if (props.name !== 'core/heading') {
-                    return <BlockEdit {...props} />;
-                }
-
-                const { attributes, setAttributes } = props;
-                const { navigationLabel, excludeFromNavigation } = attributes;
-
-                return (
-                    <Fragment>
-                        <BlockEdit {...props} />
-                        <InspectorControls>
-                            <PanelBody title="Navigation Settings">
-                                <TextControl
-                                    label="Navigation Label"
-                                    value={navigationLabel}
-                                    onChange={(value) => setAttributes({ navigationLabel: value })}
-                                    help="Custom label for this heading in the navigation menu."
-                                />
-                                <ToggleControl
-                                    label="Exclude from Navigation"
-                                    checked={excludeFromNavigation}
-                                    onChange={(value) => setAttributes({ excludeFromNavigation: value })}
-                                    help="Exclude this heading from the navigation menu."
-                                />
-                            </PanelBody>
-                        </InspectorControls>
-                    </Fragment>
-                );
-            };
-        }, 'addHeadingInspectorControls');
-
-        // Register the Inspector Controls filter
-        addFilter(
-            'editor.BlockEdit',
-            'custom/heading-inspector-controls',
-            addHeadingInspectorControls
-        );
-
-        // Re-register the core/heading block with the custom settings
+        // Re-register the core/heading block with custom attributes
         wp.blocks.unregisterBlockType('core/heading');
         wp.blocks.registerBlockType('core/heading', { ...headingBlock, ...customHeadingSettings });
 
@@ -120,13 +79,54 @@ const modifyCoreHeading = () => {
     }
 };
 
-// Initialize after dependencies are available
+// Step 3: Add Inspector Controls
+const addHeadingInspectorControls = createHigherOrderComponent((BlockEdit) => {
+    return (props) => {
+        if (props.name !== 'core/heading') {
+            return <BlockEdit {...props} />;
+        }
+
+        const { attributes, setAttributes } = props;
+        const { navigationLabel, excludeFromNavigation } = attributes;
+
+        return (
+            <Fragment>
+                <BlockEdit {...props} />
+                <InspectorControls>
+                    <PanelBody title="Navigation Settings">
+                        <TextControl
+                            label="Navigation Label"
+                            value={navigationLabel}
+                            onChange={(value) => setAttributes({ navigationLabel: value })}
+                            help="Custom label for this heading in the navigation menu."
+                        />
+                        <ToggleControl
+                            label="Exclude from Navigation"
+                            checked={excludeFromNavigation}
+                            onChange={(value) => setAttributes({ excludeFromNavigation: value })}
+                            help="Exclude this heading from the navigation menu."
+                        />
+                    </PanelBody>
+                </InspectorControls>
+            </Fragment>
+        );
+    };
+}, 'addHeadingInspectorControls');
+
+// Register the filter to add inspector controls for `core/heading`
+addFilter(
+    'editor.BlockEdit',
+    'custom/heading-inspector-controls',
+    addHeadingInspectorControls
+);
+
+// Initialize modifications after dependencies are available
 const initPlugin = () => {
     if (typeof window.wp !== 'undefined' && wp.blocks && wp.hooks && wp.data) {
         console.log("Dependencies available. Modifying core blocks...");
         modifyCoreHeading();
 
-        // Clear the interval
+        // Clear the interval after modifying
         clearInterval(checkReadyInterval);
     } else {
         console.log("Waiting for wp.blocks, wp.hooks, and wp.data...");
