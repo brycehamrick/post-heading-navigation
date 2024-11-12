@@ -2,14 +2,18 @@ import { wp } from '@wordpress/blocks';
 
 console.log("Script loaded for Post Heading Navigation testing");
 
-const initPlugin = () => {
-    if (typeof window.wp !== 'undefined' && wp.domReady && wp.hooks) {
-        console.log("window.wp, wp.hooks, and wp.domReady are available");
+const waitForEditor = () => {
+    // Check if the necessary WordPress dependencies are loaded
+    if (typeof wp !== 'undefined' && wp.data && wp.data.select) {
+        console.log("wp and wp.data.select are available");
 
-        wp.domReady(() => {
-            console.log("Editor is ready, attempting to register filter...");
+        // Use the core/block-editor store to check if the editor is ready
+        const { isEditorReady } = wp.data.select('core/block-editor') || {};
 
-            // Test if the hook itself is triggering
+        if (isEditorReady) {
+            console.log("Editor is fully ready, initializing filter...");
+
+            // Register the filter for block registration
             wp.hooks.addFilter(
                 'blocks.registerBlockType',
                 'custom/test-filter-log', // A unique namespace for this filter
@@ -18,12 +22,16 @@ const initPlugin = () => {
                     return settings;
                 }
             );
-        });
 
-        clearInterval(checkReadyInterval); // Stop checking once dependencies are loaded
+            // Stop the interval once initialization is complete
+            clearInterval(waitForEditorInterval);
+        } else {
+            console.log("Editor not yet fully ready, waiting...");
+        }
     } else {
-        console.log("Waiting for window.wp and dependencies...");
+        console.log("wp.data or wp.data.select is not available yet, waiting...");
     }
 };
 
-const checkReadyInterval = setInterval(initPlugin, 100);
+// Set an interval to periodically check for editor readiness
+const waitForEditorInterval = setInterval(waitForEditor, 100);
