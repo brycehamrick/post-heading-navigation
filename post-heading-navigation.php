@@ -97,12 +97,20 @@ class PostHeadingNavigation {
     }
 
     public function enqueue_editor_assets() {
-        // Enqueue the editor script with dependencies
         wp_enqueue_script(
             self::SLUG . '-block',
-            plugins_url( 'build/index.js', __FILE__ ),
-            [ 'wp-blocks', 'wp-element', 'wp-components', 'wp-compose', 'wp-hooks', 'wp-dom-ready', 'wp-block-editor', 'wp-data' ],
-            filemtime( plugin_dir_path( __FILE__ ) . 'build/index.js' ),
+            plugins_url( 'build/post-heading-navigation.js', __FILE__ ),
+            [ 'wp-blocks', 'wp-element', 'wp-block-editor' ],
+            POST_HEADING_NAVIGATION_VERSION,
+            true
+        );
+
+        // Enqueue core heading modification script
+        wp_enqueue_script(
+            self::SLUG . '-core-heading',
+            plugins_url( 'build/core-heading-modifications.js', __FILE__ ),
+            [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-hooks' ],
+            POST_HEADING_NAVIGATION_VERSION,
             true
         );
     }

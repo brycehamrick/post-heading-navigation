@@ -2,10 +2,13 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
-    entry: './src/index.js',
+    entry: {
+        'post-heading-navigation': './src/post-heading-navigation.js',
+        'core-heading-modifications': './src/core-heading-modifications.js'
+    },
     output: {
         path: path.resolve(__dirname, 'build'),
-        filename: 'index.js',
+        filename: '[name].js', // Use the entry name for each output file
     },
     module: {
         noParse: /react\/jsx-runtime|react-dom/,
@@ -17,7 +20,6 @@ module.exports = {
                     loader: 'babel-loader',
                     options: {
                         plugins: [
-                            // Directly use the classic JSX transformation
                             ['@babel/plugin-transform-react-jsx', { pragma: 'wp.element.createElement' }]
                         ]
                     }
