@@ -65,29 +65,17 @@ function addHeadingAttributes(settings, name) {
 
 // Add controls to the Heading block sidebar
 const withInspectorControls = createHigherOrderComponent((BlockEdit) => {
-    console.log("withInspectorControls is loading");
     return (props) => {
         if (props.name !== 'core/heading') return <BlockEdit {...props} />;
 
-        const { attributes, setAttributes } = props;
-        const { navigationLabel, excludeFromNavigation } = attributes;
+        console.log("withInspectorControls running for core/heading");
 
         return (
             <Fragment>
                 <BlockEdit {...props} />
                 <InspectorControls>
-                    <PanelBody title="Navigation Settings">
-                        <TextControl
-                            label="Navigation Label"
-                            value={navigationLabel}
-                            onChange={(value) => setAttributes({ navigationLabel: value })}
-                            help="Custom text for this heading in the navigation."
-                        />
-                        <ToggleControl
-                            label="Exclude from Navigation"
-                            checked={excludeFromNavigation}
-                            onChange={(value) => setAttributes({ excludeFromNavigation: value })}
-                        />
+                    <PanelBody title="Test Panel">
+                        <p>Test control visible in Heading block</p>
                     </PanelBody>
                 </InspectorControls>
             </Fragment>
@@ -95,14 +83,18 @@ const withInspectorControls = createHigherOrderComponent((BlockEdit) => {
     };
 }, 'withInspectorControls');
 
-// Register filters to extend the Heading block
-wp.hooks.addFilter(
-    'blocks.registerBlockType',
-    'custom/heading-attributes',
-    addHeadingAttributes
-);
-wp.hooks.addFilter(
-    'blocks.BlockEdit',
-    'custom/with-inspector-controls',
-    withInspectorControls
-);
+(function() {
+    console.log("Initializing Post Heading Navigation filters");
+
+    // Register filters using wp.hooks.addFilter directly
+    wp.hooks.addFilter(
+        'blocks.registerBlockType',
+        'custom/heading-attributes',
+        addHeadingAttributes
+    );
+    wp.hooks.addFilter(
+        'blocks.BlockEdit',
+        'custom/with-inspector-controls',
+        withInspectorControls
+    );
+})();
