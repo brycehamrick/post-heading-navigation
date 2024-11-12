@@ -1,31 +1,31 @@
 console.log("Script loaded for Post Heading Navigation testing");
 
 const initPlugin = () => {
-    // Ensure wp, wp.hooks, and wp.data are available
     if (typeof window.wp !== 'undefined' && wp.hooks && wp.data) {
         console.log("wp.hooks and wp.data are available");
 
-        // Register the filter directly
+        // Register a filter on `blocks.getBlockTypes` to confirm it triggers
         wp.hooks.addFilter(
-            'blocks.registerBlockType',
+            'blocks.getBlockTypes',
             'custom/test-filter-log',
-            (settings, name) => {
-                console.log(`Filter is being triggered for block: ${name}`);
-                return settings;
+            (blockTypes) => {
+                console.log("blocks.getBlockTypes filter triggered");
+                blockTypes.forEach((blockType) => {
+                    console.log(`Registered block: ${blockType.name}`);
+                });
+                return blockTypes;
             }
         );
 
-        // Clear interval after successful initialization
+        // Clear interval to stop further checks
         clearInterval(checkReadyInterval);
     } else {
         console.log("Waiting for wp.hooks and wp.data...");
     }
 };
 
-// Set an interval to check for wp, wp.hooks, and wp.data readiness
+// Set interval to check if wp, wp.hooks, and wp.data are available after DOMContentLoaded
 let checkReadyInterval;
-
-// Start the interval only after DOMContentLoaded
 window.addEventListener('DOMContentLoaded', () => {
     console.log("DOMContentLoaded event fired, starting wp dependency check...");
     checkReadyInterval = setInterval(initPlugin, 100);
