@@ -101,7 +101,7 @@ class PostHeadingNavigation {
         wp_enqueue_script(
             self::SLUG . '-block',
             plugins_url( 'build/index.js', __FILE__ ),
-            [ 'wp-blocks', 'wp-element', 'wp-components', 'wp-compose', 'wp-hooks', 'wp-block-editor' ],
+            [ 'wp-blocks', 'wp-element', 'wp-components', 'wp-compose', 'wp-hooks', 'wp-dom-ready', 'wp-block-editor' ],
             filemtime( plugin_dir_path( __FILE__ ) . 'build/index.js' ),
             true
         );
