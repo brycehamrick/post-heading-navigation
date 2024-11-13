@@ -4,9 +4,13 @@ import { PanelBody, TextControl, ToggleControl } from '@wordpress/components';
 import { Fragment } from '@wordpress/element';
 import { createHigherOrderComponent } from '@wordpress/compose';
 
+console.log("Script loaded for Core Heading Modifications");
+
 // Step 1: Add custom attributes to core/heading
 function addCustomHeadingAttributes(settings, name) {
     if (name === 'core/heading') {
+        console.log("Adding custom attributes to core/heading");
+
         settings.attributes = {
             ...settings.attributes,
             navigationLabel: {
@@ -22,13 +26,15 @@ function addCustomHeadingAttributes(settings, name) {
     return settings;
 }
 
-// Step 2: Add controls to modify custom attributes in the editor sidebar
+// Step 2: Add inspector controls to edit custom attributes in the sidebar
 const addHeadingInspectorControls = createHigherOrderComponent((BlockEdit) => {
     return (props) => {
         if (props.name !== 'core/heading') return <BlockEdit {...props} />;
 
         const { attributes, setAttributes } = props;
         const { navigationLabel, excludeFromNavigation } = attributes;
+
+        console.log("Rendering Inspector Controls for core/heading");
 
         return (
             <Fragment>
@@ -57,13 +63,13 @@ const addHeadingInspectorControls = createHigherOrderComponent((BlockEdit) => {
 // Step 3: Override the core/heading save function to add data-* attributes
 function overrideHeadingSave(settings, name) {
     if (name === 'core/heading') {
+        console.log("Overriding save function for core/heading");
         const originalSave = settings.save;
 
         settings.save = (props) => {
             const { navigationLabel, excludeFromNavigation } = props.attributes;
             const element = originalSave(props);
 
-            // Add data attributes if they are set in the block
             if (element?.props) {
                 const newProps = {
                     ...element.props,
@@ -71,7 +77,7 @@ function overrideHeadingSave(settings, name) {
                     ...(excludeFromNavigation ? { 'data-exclude-nav': 'true' } : {}),
                 };
 
-                // Return element with added data-* attributes
+                console.log("Adding data-* attributes to core/heading in save function:", newProps);
                 return wp.element.cloneElement(element, newProps);
             }
 
@@ -82,7 +88,7 @@ function overrideHeadingSave(settings, name) {
     return settings;
 }
 
-// Step 4: Register all filters
+// Register filters to apply custom attributes and override save
 addFilter(
     'blocks.registerBlockType',
     'custom/heading-attributes',
@@ -100,3 +106,5 @@ addFilter(
     'custom/override-heading-save',
     overrideHeadingSave
 );
+
+console.log("All filters registered for Core Heading Modifications");
