@@ -3,7 +3,7 @@ import { InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, TextControl, ToggleControl } from '@wordpress/components';
 import { Fragment } from '@wordpress/element';
 
-// 1. Add custom attributes to core/heading
+// Step 1: Add custom attributes to core/heading
 function addCustomHeadingAttributes(settings, name) {
     if (name === 'core/heading') {
         settings.attributes = {
@@ -21,7 +21,7 @@ function addCustomHeadingAttributes(settings, name) {
     return settings;
 }
 
-// 2. Add controls in the block inspector for custom attributes
+// Step 2: Add controls in the block inspector for custom attributes
 const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((BlockEdit) => {
     return (props) => {
         if (props.name !== 'core/heading') return <BlockEdit {...props} />;
@@ -42,7 +42,7 @@ const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((Block
                         />
                         <ToggleControl
                             label="Exclude from Navigation"
-                            checked={excludeFromNavigation}
+                            checked={!!excludeFromNavigation}
                             onChange={(value) => setAttributes({ excludeFromNavigation: value })}
                             help="Exclude this heading from the navigation menu."
                         />
@@ -53,26 +53,33 @@ const addHeadingInspectorControls = wp.compose.createHigherOrderComponent((Block
     };
 }, 'addHeadingInspectorControls');
 
-// 3. Modify the save function to add data-* attributes to the HTML
-function addDataAttributesToSave(element, blockType, attributes) {
-    if (blockType.name === 'core/heading') {
-        const { navigationLabel, excludeFromNavigation } = attributes;
+// Step 3: Override the save function to include data-* attributes
+function overrideHeadingSave(settings, name) {
+    if (name === 'core/heading') {
+        const originalSave = settings.save;
 
-        // Check if element is an HTML tag (React element)
-        if (element?.props) {
-            const newProps = {
-                ...element.props,
-                ...(navigationLabel ? { 'data-nav-label': navigationLabel } : {}),
-                ...(excludeFromNavigation ? { 'data-exclude-nav': true } : {}),
-            };
+        settings.save = (props) => {
+            const { navigationLabel, excludeFromNavigation } = props.attributes;
+            const element = originalSave(props);
 
-            return wp.element.cloneElement(element, newProps);
-        }
+            if (element?.props) {
+                const newProps = {
+                    ...element.props,
+                    ...(navigationLabel ? { 'data-nav-label': navigationLabel } : {}),
+                    ...(excludeFromNavigation ? { 'data-exclude-nav': true } : {}),
+                };
+
+                return wp.element.cloneElement(element, newProps);
+            }
+
+            return element;
+        };
     }
-    return element;
+
+    return settings;
 }
 
-// 4. Register filters to inject attributes and controls
+// Register filters to inject attributes, controls, and override save
 addFilter(
     'blocks.registerBlockType',
     'custom/heading-attributes',
@@ -87,6 +94,6 @@ addFilter(
 
 addFilter(
     'blocks.getSaveElement',
-    'custom/add-data-attributes',
-    addDataAttributesToSave
+    'custom/override-heading-save',
+    overrideHeadingSave
 );
